@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:listed_snack_bar/multi_snackbar.dart';
@@ -14,39 +15,49 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       title: 'Flutter Demo',
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
+class MyHomePage extends StatelessWidget {
+  const MyHomePage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    List<Widget> snackBars = [
+      const Text('Hello world', style: TextStyle(color: Colors.red)),
+      TextButton.icon(
+        onPressed: () => print('pressed'),
+        icon: const Icon(Icons.eighteen_mp_outlined, size: 33,),
+        label: const Text("Do not press me"),
+        style: TextButton.styleFrom(backgroundColor: Colors.pink),
+      ),
+      const Icon(
+        Icons.sixteen_mp,
+        size: 18,
+      ),
+      Container(
+        width: 20,
+        height: 33,
+        color: Colors.yellow,
+      )
+    ];
+
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Align(
-        alignment: Alignment.topCenter,
-        child: TextButton(
-          onPressed
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.only(top: 80.0),
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: TextButton(
+              onPressed: () => MultiSnackBarController.show(context: context, snackBars: snackBars),
+              child: const Text("show me what you got"),
+            ),
+          ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
