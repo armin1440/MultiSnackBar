@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 class _MultiSnackBarModel extends ChangeNotifier {
   _MultiSnackBarModel._();
+
   static final instance = _MultiSnackBarModel._();
 
   factory _MultiSnackBarModel() => instance;
@@ -11,33 +12,41 @@ class _MultiSnackBarModel extends ChangeNotifier {
   int _maxListLength = 4;
 
   @override
-  dispose(){}
+  dispose() {}
 
-  void reset(){
+  void reset() {
     _snackBarsList = [];
     _maxListLength = 4;
   }
 
   List<Widget> get snackBarsList => _snackBarsList;
-  void setSnackBarsList({required List<Widget> newSnackBarsList}){
+
+  void setSnackBarsList({required List<Widget> newSnackBarsList}) {
     _snackBarsList = newSnackBarsList;
     notifyListeners();
   }
-  void addSnackBar({required Widget toBeAddedSnackBar}){
-    if(_snackBarsList.length == _maxListLength){
+
+  void addSnackBar({required Widget toBeAddedSnackBar}) {
+    if (_snackBarsList.length == _maxListLength) {
       _snackBarsList.removeAt(0);
     }
     _snackBarsList.add(toBeAddedSnackBar);
     notifyListeners();
   }
-  void clearSnackBarList(){
+
+  void clearSnackBarList() {
     _snackBarsList = [];
     notifyListeners();
   }
 
-  void setMaxListLength({required int maxLength}){
+  void removeSnackBar({required Widget toBeRemovedSnackBar}){
+    _snackBarsList.remove(toBeRemovedSnackBar);
+    notifyListeners();
+  }
+
+  void setMaxListLength({required int maxLength}) {
     _maxListLength = maxLength;
-    if(_snackBarsList.length > _maxListLength){
+    if (_snackBarsList.length > _maxListLength) {
       int listLength = _snackBarsList.length;
       setSnackBarsList(newSnackBarsList: _snackBarsList.sublist(listLength - _maxListLength));
     }
@@ -62,17 +71,17 @@ class MultiSnackBarController {
     );
   }
 
-  static add({required BuildContext context, required Widget toBeAddedSnackBar}){
+  static add({required BuildContext context, required Widget toBeAddedSnackBar}) {
     _model.addSnackBar(toBeAddedSnackBar: toBeAddedSnackBar);
   }
 
-  static clearAll({required BuildContext context}){
+  static clearAll({required BuildContext context}) {
     ScaffoldMessenger.of(context).clearSnackBars();
     _model.clearSnackBarList();
   }
 
-  static setMaxListLength({required int maxLength}){
-    if(maxLength > 0){
+  static setMaxListLength({required int maxLength}) {
+    if (maxLength > 0) {
       _model.setMaxListLength(maxLength: maxLength);
     }
   }
@@ -102,11 +111,15 @@ class _MultiSnackBar extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: model._snackBarsList
           .map(
-            (snackBar) => SizedBox(
-          width: double.infinity,
-          child: snackBar,
-        ),
-      )
+            (snackBar) => Dismissible(
+              key: UniqueKey(),
+              onDismissed: (_) => model.removeSnackBar(toBeRemovedSnackBar: snackBar),
+              child: SizedBox(
+                width: double.infinity,
+                child: snackBar,
+              ),
+            ),
+          )
           .toList(),
     );
   }
