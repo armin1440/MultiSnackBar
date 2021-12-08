@@ -24,27 +24,6 @@ class MyHomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    List<Widget> snackBars = [
-      const Text('Hello world', style: TextStyle(color: Colors.red)),
-      TextButton.icon(
-        onPressed: () => print('pressed'),
-        icon: const Icon(
-          Icons.eighteen_mp_outlined,
-          size: 33,
-        ),
-        label: const Text("Do not press me"),
-        style: TextButton.styleFrom(backgroundColor: Colors.pink),
-      ),
-      const Icon(
-        Icons.sixteen_mp,
-        size: 18,
-      ),
-      Container(
-        width: 20,
-        height: 33,
-        color: Colors.yellow,
-      )
-    ];
     var random = Random.secure();
 
     return Scaffold(
@@ -54,22 +33,27 @@ class MyHomePage extends StatelessWidget {
           child: Column(
             children: [
               TextButton(
-                onPressed: () => MultiSnackBarInterface.show(context: context, snackBars: snackBars),
-                child: const Text("show me what you got"),
-              ),
-              TextButton(
-                onPressed: () => MultiSnackBarInterface.add(
+                onPressed: () {
+                  // try{
+                  MultiSnackBarInterface.show(
                     context: context,
-                    toBeAddedSnackBar: Container(
-                      padding: const EdgeInsets.all(8),
-                      color: Color.fromRGBO(random.nextInt(255), random.nextInt(255), random.nextInt(255), 1),
-                      child: const Text(
+                    snackBars: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        color: Color.fromRGBO(random.nextInt(255), random.nextInt(255), random.nextInt(255), 1),
+                        child: const Text(
                           'Added',
                           style: TextStyle(color: Colors.black),
                         ),
-                    ),
-                ),
-                child: const Text("Add sth"),
+                      )
+                    ],
+                  );
+                  // }
+                  // catch(e){
+                  //   print('caught');
+                  // }
+                },
+                child: const Text("show me what you got"),
               ),
               TextButton(
                 onPressed: () => MultiSnackBarInterface.clearAll(context: context),
