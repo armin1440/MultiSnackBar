@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -55,11 +54,11 @@ class MyHomePage extends StatelessWidget {
           child: Column(
             children: [
               TextButton(
-                onPressed: () => MultiSnackBarController.show(context: context, snackBars: snackBars),
+                onPressed: () => MultiSnackBarInterface.show(context: context, snackBars: snackBars),
                 child: const Text("show me what you got"),
               ),
               TextButton(
-                onPressed: () => MultiSnackBarController.add(
+                onPressed: () => MultiSnackBarInterface.add(
                     context: context,
                     toBeAddedSnackBar: Container(
                       padding: const EdgeInsets.all(8),
@@ -73,7 +72,7 @@ class MyHomePage extends StatelessWidget {
                 child: const Text("Add sth"),
               ),
               TextButton(
-                onPressed: () => MultiSnackBarController.clearAll(context: context),
+                onPressed: () => MultiSnackBarInterface.clearAll(context: context),
                 child: const Text('Clear'),
               ),
               SizedBox(
@@ -86,7 +85,7 @@ class MyHomePage extends StatelessWidget {
                     SizedBox(
                       width: 100,
                       child: TextField(
-                        onSubmitted: (max) => MultiSnackBarController.setMaxListLength(maxLength: int.parse(max)),
+                        onSubmitted: (max) => MultiSnackBarInterface.setMaxListLength(maxLength: int.parse(max)),
                       ),
                     )
                   ],

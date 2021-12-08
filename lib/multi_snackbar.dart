@@ -22,12 +22,16 @@ class _MultiSnackBarModel extends ChangeNotifier {
   List<Widget> get snackBarsList => _snackBarsList;
 
   void setSnackBarsList({required List<Widget> newSnackBarsList}) {
+    if(newSnackBarsList.length > _maxListLength){
+      throw Exception("Snackbars length ( = ${newSnackBarsList.length} ) is larger than max length allowed ( = $_maxListLength ) ");
+    }
     _snackBarsList = newSnackBarsList;
     notifyListeners();
   }
 
   void addSnackBar({required Widget toBeAddedSnackBar}) {
-    if (_snackBarsList.length == _maxListLength) {
+    int listLength = _snackBarsList.length;
+    if (listLength == _maxListLength) {
       _snackBarsList.removeAt(0);
     }
     _snackBarsList.add(toBeAddedSnackBar);
@@ -44,6 +48,13 @@ class _MultiSnackBarModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void onDismissSnackBar({required Widget toBeDismissedSnackBar, required BuildContext context}){
+    removeSnackBar(toBeRemovedSnackBar: toBeDismissedSnackBar);
+    if(_snackBarsList.isEmpty){
+      ScaffoldMessenger.of(context).removeCurrentSnackBar();
+    }
+  }
+
   void setMaxListLength({required int maxLength}) {
     _maxListLength = maxLength;
     if (_snackBarsList.length > _maxListLength) {
@@ -53,8 +64,8 @@ class _MultiSnackBarModel extends ChangeNotifier {
   }
 }
 
-class MultiSnackBarController {
-  static _MultiSnackBarModel _model = _MultiSnackBarModel();
+class MultiSnackBarInterface {
+  static final _MultiSnackBarModel _model = _MultiSnackBarModel();
 
   static show({required BuildContext context, required List<Widget> snackBars}) {
     _model.setSnackBarsList(newSnackBarsList: snackBars);
@@ -113,7 +124,7 @@ class _MultiSnackBar extends StatelessWidget {
           .map(
             (snackBar) => Dismissible(
               key: UniqueKey(),
-              onDismissed: (_) => model.removeSnackBar(toBeRemovedSnackBar: snackBar),
+              onDismissed: (_) => model.onDismissSnackBar(toBeDismissedSnackBar: snackBar, context: context),
               child: SizedBox(
                 width: double.infinity,
                 child: snackBar,
