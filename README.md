@@ -1,16 +1,38 @@
-# listed_snack_bar
+# multi_snackbar
 
-A new Flutter project.
+A set of commands that helps you display more than one snackbar at the same time.
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+### Make a list of widgets:
+~~~
+var widgets = List.generate(3, (index) => Text('I am $index'));
+~~~
 
-A few resources to get you started if this is your first Flutter project:
+### Show them as individual snackbars:
+~~~
+MultiSnackBarInterface.show(context: context, snackBars: widgets);
+~~~
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
+Just like that!
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Another Features
+
+### Set maximum number of snackbars:
+~~~
+MultiSnackBarInterface.setMaxListLength(maxLength: 4);
+~~~
+
+### Set display time of snackbars:
+~~~
+MultiSnackBarInterface.setDisplayTime(displayTime: const Duration(seconds: 6));
+~~~
+
+### Close all snackbars:
+~~~
+MultiSnackBarInterface.clearAll(context: context);
+~~~
+
+
+
+#### Please give this package a star and follow me on github: https://github.com/armin1440 ;)
