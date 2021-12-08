@@ -3,6 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+///This class holds data of the MultiSnackBar
+///such as :
+/// the list of snackbars
+/// display time
+/// max number of snackbars
 class _MultiSnackBarModel extends ChangeNotifier {
   _MultiSnackBarModel._();
 
@@ -10,21 +15,27 @@ class _MultiSnackBarModel extends ChangeNotifier {
 
   factory _MultiSnackBarModel() => instance;
 
+  ///The list of snackbars that is going to be displayed
   List<Widget> _snackBarsList = <Widget>[];
+  ///The max number of snackbars that is allowed to be displayed at the same time
   int? _maxListLength;
+  ///The time which snackbars will automatically dismiss after
   Duration _displayTime = const Duration(seconds: 5);
 
   @override
   dispose() {}
 
-  void reset() {
-    _snackBarsList = [];
-    _maxListLength = null;
-    _displayTime = const Duration(seconds: 5);
-  }
+  // void reset() {
+  //   _snackBarsList = [];
+  //   _maxListLength = null;
+  //   _displayTime = const Duration(seconds: 5);
+  // }
 
   List<Widget> get snackBarsList => _snackBarsList;
 
+  ///Sets snackbars
+  ///If max list length is not null, then an exception will be thrown if you try to
+  ///display more snackbars using this method
   void trySetSnackBarsList({required List<Widget> newSnackBarsList}) {
     if (_maxListLength != null && newSnackBarsList.length > _maxListLength!) {
       throw Exception(
@@ -34,21 +45,26 @@ class _MultiSnackBarModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  ///Adds a list of widgets to the being displayed snackbars
   void addSnackBars({required List<Widget> toBeAddedSnackBar}) {
     _snackBarsList.addAll(toBeAddedSnackBar);
     notifyListeners();
   }
 
+  ///Empties all snackbars
   void clearSnackBarList() {
     _snackBarsList = [];
     notifyListeners();
   }
 
+  ///removes a snackbar
   void _removeSnackBar({required Widget toBeRemovedSnackBar}) {
     _snackBarsList.remove(toBeRemovedSnackBar);
     notifyListeners();
   }
 
+  ///Dismissed a snackbar
+  ///Also if there is not any other snackbars, it removes the whole parent snackbar
   void dismissSnackBar({required Widget toBeDismissedSnackBar, required BuildContext context}) {
     _removeSnackBar(toBeRemovedSnackBar: toBeDismissedSnackBar);
     if (_snackBarsList.isEmpty) {
@@ -69,11 +85,22 @@ class _MultiSnackBarModel extends ChangeNotifier {
   }
 }
 
+///The interface of this library
+///used to interact with the programmer
 class MultiSnackBarInterface {
   static final _MultiSnackBarModel _model = _MultiSnackBarModel();
+
+  ///The list of snackbars' timers
+  ///each timer holds the amount of time each snackbar will be dispalyed for
+  ///when a timer expires it dismissed the corresponding snackbar
   static List<Timer> _timersList = <Timer>[];
+
+  ///A boolean which holds the state of the parent snackbar
+  ///false => parent snackbar is not being displayed
+  ///true => parent snackbar is being displayed
   static bool _isShowingSnackbar = false;
 
+  ///Initializes the snackbars list and the times list
   static void _init({required List<Widget> snackBars, required BuildContext context}) {
     _model.trySetSnackBarsList(newSnackBarsList: snackBars);
     _timersList.forEach((timer) => timer.cancel());
@@ -88,6 +115,9 @@ class MultiSnackBarInterface {
     });
   }
 
+  ///Shows a list of widgets as individual snackbars
+  ///Each snackbar is dismissible independently and also it dismisses automatically when its timer expires
+  ///The timer counts to displayTime which you can set it using setDisplayTime. By default it is 5 seconds
   static void show({required BuildContext context, required List<Widget> snackBars}) {
     if (_isShowingSnackbar) {
       _add(context: context, toBeAddedSnackBars: snackBars);
@@ -111,12 +141,17 @@ class MultiSnackBarInterface {
     }
   }
 
+  ///Adds a snackbar to the displaying snackbars if there is enough space
+  ///If there is not enough space, it adds as much snackbars as it is possible until reaching the limit
+  ///You can set the limit using setMaxListLength
   static _add({required BuildContext context, required List<Widget> toBeAddedSnackBars}) {
     int listLength = _model.snackBarsList.length;
-    if (_model.maxListLength != null && listLength == _model.maxListLength) {
-      _model.snackBarsList.removeRange(0, toBeAddedSnackBars.length);
-      _timersList.getRange(0, toBeAddedSnackBars.length).forEach((timer) => timer.cancel());
-      _timersList.removeRange(0, toBeAddedSnackBars.length);
+    int? freeSpace = _model.maxListLength == null ? null : _model.maxListLength! - listLength;
+    if (freeSpace != null && freeSpace < toBeAddedSnackBars.length) {
+      int neededSpace = toBeAddedSnackBars.length - freeSpace;
+      _model.snackBarsList.removeRange(0, neededSpace);
+      _timersList.getRange(0, neededSpace).forEach((timer) => timer.cancel());
+      _timersList.removeRange(0, neededSpace);
     }
     _model.addSnackBars(toBeAddedSnackBar: toBeAddedSnackBars);
     toBeAddedSnackBars.forEach((toBeAddedSnackBar) {
@@ -129,6 +164,8 @@ class MultiSnackBarInterface {
     });
   }
 
+  ///Dismisses a snackbar and removes its timer
+  ///Finally if there is no being displayed snackbars, it sets isShowingSnackbar to false
   static void _onDismissSnackBar({required Widget toBeDismissedSnackBar, required BuildContext context}) {
     int snackIndex = _model.snackBarsList.indexOf(toBeDismissedSnackBar);
     _model.dismissSnackBar(toBeDismissedSnackBar: toBeDismissedSnackBar, context: context);
@@ -139,6 +176,7 @@ class MultiSnackBarInterface {
     }
   }
 
+  ///Clears all of the being displayed snackbars
   static void clearAll({required BuildContext context}) {
     ScaffoldMessenger.of(context).clearSnackBars();
     _model.clearSnackBarList();
@@ -147,6 +185,9 @@ class MultiSnackBarInterface {
     _isShowingSnackbar = false;
   }
 
+  ///Sets the max number of snackbars which are being displayed at the same time
+  ///If there are some snackbars being displayed at the moment of calling this,
+  ///it will remove all extra top snackbars
   static void setMaxListLength({required int maxLength}) {
     if (maxLength > 0) {
       _model.setMaxListLength(maxLength: maxLength);
@@ -159,11 +200,13 @@ class MultiSnackBarInterface {
     }
   }
 
+  ///Sets the time which each snackbar is displayed for
   static void setDisplayTime({required Duration displayTime}){
     _model.setDisplayTime(displayTime: displayTime);
   }
 }
 
+///This class is only used to wrap view in ChangeNotifierProvider
 class _MultiSnackBarWrapper extends StatelessWidget {
   final Function(Widget, BuildContext) onDismiss;
 
@@ -181,6 +224,9 @@ class _MultiSnackBarWrapper extends StatelessWidget {
   }
 }
 
+///This widget is the view of snackbars
+///There is a single flutter SnackBar that has all other snackbars as its child
+///Each child has infinite width but the height is determined by the child
 class _MultiSnackBar extends StatelessWidget {
   final Function(Widget, BuildContext) onDismiss;
 

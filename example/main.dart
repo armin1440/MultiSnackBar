@@ -31,7 +31,9 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
+    //This is optional. By default there is no limit.
     MultiSnackBarInterface.setMaxListLength(maxLength: 4);
+    //This is optional. By default it is 5 seconds.
     MultiSnackBarInterface.setDisplayTime(displayTime: const Duration(seconds: 6));
   }
 
@@ -47,7 +49,10 @@ class _MyHomePageState extends State<MyHomePage> {
             children: [
               TextButton(
                 onPressed: () {
-                  // try{
+                  //You should wrap show method in try-catch block when there is a max number of snackbars limit
+                  //because you might get an exception when you want to show more snackbars than the limit
+
+                  try{
                   MultiSnackBarInterface.show(
                     context: context,
                     snackBars: [
@@ -58,26 +63,42 @@ class _MyHomePageState extends State<MyHomePage> {
                           'Added',
                           style: TextStyle(color: Colors.black),
                         ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        color: Color.fromRGBO(random.nextInt(255), random.nextInt(255), random.nextInt(255), 1),
+                        child: const Text(
+                          'Added',
+                          style: TextStyle(color: Colors.black),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        color: Color.fromRGBO(random.nextInt(255), random.nextInt(255), random.nextInt(255), 1),
+                        child: const Text(
+                          'Added',
+                          style: TextStyle(color: Colors.black),
+                        ),
                       )
                     ],
                   );
-                  // }
-                  // catch(e){
-                  //   print('caught');
-                  // }
+                  }
+                  catch(e){
+                    // print(e.toString());
+                  }
                 },
-                child: const Text("show me what you got"),
+                child: const Text("Add a snackbar"),
               ),
               TextButton(
                 onPressed: () => MultiSnackBarInterface.clearAll(context: context),
-                child: const Text('Clear'),
+                child: const Text('Clear All'),
               ),
               SizedBox(
                 height: 20,
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('Max List Length'),
+                    const Text('Set Max List Length'),
                     const SizedBox(width: 20),
                     SizedBox(
                       width: 100,
