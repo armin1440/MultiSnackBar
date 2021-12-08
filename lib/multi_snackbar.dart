@@ -2,16 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class _MultiSnackBarModel extends ChangeNotifier {
+  _MultiSnackBarModel._();
   static final instance = _MultiSnackBarModel._();
 
-  _MultiSnackBarModel._();
-
   factory _MultiSnackBarModel() => instance;
+
+  @override
+  dispose(){}
 
   List<Widget> _snackBarsList = <Widget>[];
   List<Widget> get snackBarsList => _snackBarsList;
   void setSnackBarsList({required List<Widget> newSnackBarsList}){
+    print(newSnackBarsList.length);
     _snackBarsList = newSnackBarsList;
+    notifyListeners();
+  }
+  void addSnackBar({required Widget toBeAddedSnackBar}){
+    _snackBarsList.add(toBeAddedSnackBar);
+    notifyListeners();
+  }
+  void clearSnackBarList(){
+    _snackBarsList = [];
     notifyListeners();
   }
 }
@@ -24,13 +35,23 @@ class MultiSnackBarController {
     ScaffoldMessenger.of(context).removeCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        duration: Duration(hours: 1),
+        duration: Duration(hours: 4),
         elevation: 0,
+        dismissDirection: DismissDirection.none,
         backgroundColor: Colors.transparent,
         padding: EdgeInsets.zero,
         content: _MultiSnackBarWrapper(),
       ),
     );
+  }
+
+  static add({required BuildContext context, required Widget toBeAddedSnackBar}){
+    model.addSnackBar(toBeAddedSnackBar: toBeAddedSnackBar);
+  }
+
+  static clearAll({required BuildContext context}){
+    ScaffoldMessenger.of(context).clearSnackBars();
+    model.clearSnackBarList();
   }
 }
 
@@ -53,18 +74,17 @@ class _MultiSnackBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<_MultiSnackBarModel>(
-      builder: (context, model, _) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: model._snackBarsList
-            .map(
-              (snackBar) => SizedBox(
-                width: double.infinity,
-                child: snackBar,
-              ),
-            )
-            .toList(),
-      ),
+    _MultiSnackBarModel model = context.watch<_MultiSnackBarModel>();
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: model._snackBarsList
+          .map(
+            (snackBar) => SizedBox(
+          width: double.infinity,
+          child: snackBar,
+        ),
+      )
+          .toList(),
     );
   }
 }

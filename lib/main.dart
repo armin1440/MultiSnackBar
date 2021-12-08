@@ -29,7 +29,10 @@ class MyHomePage extends StatelessWidget {
       const Text('Hello world', style: TextStyle(color: Colors.red)),
       TextButton.icon(
         onPressed: () => print('pressed'),
-        icon: const Icon(Icons.eighteen_mp_outlined, size: 33,),
+        icon: const Icon(
+          Icons.eighteen_mp_outlined,
+          size: 33,
+        ),
         label: const Text("Do not press me"),
         style: TextButton.styleFrom(backgroundColor: Colors.pink),
       ),
@@ -44,17 +47,26 @@ class MyHomePage extends StatelessWidget {
       )
     ];
 
-
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.only(top: 80.0),
-          child: Align(
-            alignment: Alignment.topCenter,
-            child: TextButton(
-              onPressed: () => MultiSnackBarController.show(context: context, snackBars: snackBars),
-              child: const Text("show me what you got"),
-            ),
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: Column(
+            children: [
+              TextButton(
+                onPressed: () => MultiSnackBarController.show(context: context, snackBars: snackBars),
+                child: const Text("show me what you got"),
+              ),
+              TextButton(
+                onPressed: () => MultiSnackBarController.add(
+                    context: context, toBeAddedSnackBar: const Text('Added', style: TextStyle(color: Colors.black))),
+                child: const Text("Add sth"),
+              ),
+              TextButton(
+                onPressed: () => MultiSnackBarController.clearAll(context: context),
+                child: const Text('Clear'),
+              )
+            ],
           ),
         ),
       ),
