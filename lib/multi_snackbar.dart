@@ -7,17 +7,26 @@ class _MultiSnackBarModel extends ChangeNotifier {
 
   factory _MultiSnackBarModel() => instance;
 
+  List<Widget> _snackBarsList = <Widget>[];
+  int _maxListLength = 4;
+
   @override
   dispose(){}
 
-  List<Widget> _snackBarsList = <Widget>[];
+  void reset(){
+    _snackBarsList = [];
+    _maxListLength = 4;
+  }
+
   List<Widget> get snackBarsList => _snackBarsList;
   void setSnackBarsList({required List<Widget> newSnackBarsList}){
-    print(newSnackBarsList.length);
     _snackBarsList = newSnackBarsList;
     notifyListeners();
   }
   void addSnackBar({required Widget toBeAddedSnackBar}){
+    if(_snackBarsList.length == _maxListLength){
+      _snackBarsList.removeAt(0);
+    }
     _snackBarsList.add(toBeAddedSnackBar);
     notifyListeners();
   }
@@ -25,13 +34,21 @@ class _MultiSnackBarModel extends ChangeNotifier {
     _snackBarsList = [];
     notifyListeners();
   }
+
+  void setMaxListLength({required int maxLength}){
+    _maxListLength = maxLength;
+    if(_snackBarsList.length > _maxListLength){
+      int listLength = _snackBarsList.length;
+      setSnackBarsList(newSnackBarsList: _snackBarsList.sublist(listLength - _maxListLength));
+    }
+  }
 }
 
 class MultiSnackBarController {
-  static _MultiSnackBarModel model = _MultiSnackBarModel();
+  static _MultiSnackBarModel _model = _MultiSnackBarModel();
 
   static show({required BuildContext context, required List<Widget> snackBars}) {
-    model.setSnackBarsList(newSnackBarsList: snackBars);
+    _model.setSnackBarsList(newSnackBarsList: snackBars);
     ScaffoldMessenger.of(context).removeCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -46,12 +63,18 @@ class MultiSnackBarController {
   }
 
   static add({required BuildContext context, required Widget toBeAddedSnackBar}){
-    model.addSnackBar(toBeAddedSnackBar: toBeAddedSnackBar);
+    _model.addSnackBar(toBeAddedSnackBar: toBeAddedSnackBar);
   }
 
   static clearAll({required BuildContext context}){
     ScaffoldMessenger.of(context).clearSnackBars();
-    model.clearSnackBarList();
+    _model.clearSnackBarList();
+  }
+
+  static setMaxListLength({required int maxLength}){
+    if(maxLength > 0){
+      _model.setMaxListLength(maxLength: maxLength);
+    }
   }
 }
 

@@ -46,6 +46,7 @@ class MyHomePage extends StatelessWidget {
         color: Colors.yellow,
       )
     ];
+    var random = Random.secure();
 
     return Scaffold(
       body: SafeArea(
@@ -59,12 +60,37 @@ class MyHomePage extends StatelessWidget {
               ),
               TextButton(
                 onPressed: () => MultiSnackBarController.add(
-                    context: context, toBeAddedSnackBar: const Text('Added', style: TextStyle(color: Colors.black))),
+                    context: context,
+                    toBeAddedSnackBar: Container(
+                      padding: const EdgeInsets.all(8),
+                      color: Color.fromRGBO(random.nextInt(255), random.nextInt(255), random.nextInt(255), 1),
+                      child: const Text(
+                          'Added',
+                          style: TextStyle(color: Colors.black),
+                        ),
+                    ),
+                ),
                 child: const Text("Add sth"),
               ),
               TextButton(
                 onPressed: () => MultiSnackBarController.clearAll(context: context),
                 child: const Text('Clear'),
+              ),
+              SizedBox(
+                height: 20,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Max List Length'),
+                    const SizedBox(width: 20),
+                    SizedBox(
+                      width: 100,
+                      child: TextField(
+                        onSubmitted: (max) => MultiSnackBarController.setMaxListLength(maxLength: int.parse(max)),
+                      ),
+                    )
+                  ],
+                ),
               )
             ],
           ),
