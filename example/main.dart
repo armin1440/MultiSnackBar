@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:listed_snack_bar/multi_snackbar.dart';
+import 'package:multi_snackbar/multi_snackbar.dart';
 
 void main() {
   runApp(const MyApp());
