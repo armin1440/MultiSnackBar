@@ -12,7 +12,7 @@ class _MultiSnackBarModel extends ChangeNotifier {
 
   List<Widget> _snackBarsList = <Widget>[];
   int? _maxListLength;
-  Duration _displayTime = const Duration(seconds: 8);
+  Duration _displayTime = const Duration(seconds: 5);
 
   @override
   dispose() {}
@@ -82,7 +82,7 @@ class MultiSnackBarInterface {
       _timersList.add(
         Timer(
           _model.displayTime,
-          () => onDismissSnackBar(toBeDismissedSnackBar: snackBar, context: context),
+          () => _onDismissSnackBar(toBeDismissedSnackBar: snackBar, context: context),
         ),
       );
     });
@@ -103,7 +103,7 @@ class MultiSnackBarInterface {
           backgroundColor: Colors.transparent,
           padding: EdgeInsets.zero,
           content: _MultiSnackBarWrapper(
-            onDismiss: (snackBar, context) => onDismissSnackBar(toBeDismissedSnackBar: snackBar, context: context),
+            onDismiss: (snackBar, context) => _onDismissSnackBar(toBeDismissedSnackBar: snackBar, context: context),
           ),
         ),
       );
@@ -123,13 +123,13 @@ class MultiSnackBarInterface {
       _timersList.add(
         Timer(
           _model.displayTime,
-          () => onDismissSnackBar(toBeDismissedSnackBar: toBeAddedSnackBar, context: context),
+          () => _onDismissSnackBar(toBeDismissedSnackBar: toBeAddedSnackBar, context: context),
         ),
       );
     });
   }
 
-  static void onDismissSnackBar({required Widget toBeDismissedSnackBar, required BuildContext context}) {
+  static void _onDismissSnackBar({required Widget toBeDismissedSnackBar, required BuildContext context}) {
     int snackIndex = _model.snackBarsList.indexOf(toBeDismissedSnackBar);
     _model.dismissSnackBar(toBeDismissedSnackBar: toBeDismissedSnackBar, context: context);
     _timersList.elementAt(snackIndex).cancel();
@@ -157,6 +157,10 @@ class MultiSnackBarInterface {
         _timersList = _timersList.sublist(listLength - _model.maxListLength!);
       }
     }
+  }
+
+  static void setDisplayTime({required Duration displayTime}){
+    _model.setDisplayTime(displayTime: displayTime);
   }
 }
 

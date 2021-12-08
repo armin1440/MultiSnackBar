@@ -19,8 +19,21 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyHomePage extends StatelessWidget {
+class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key}) : super(key: key);
+
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+
+  @override
+  void initState() {
+    super.initState();
+    MultiSnackBarInterface.setMaxListLength(maxLength: 4);
+    MultiSnackBarInterface.setDisplayTime(displayTime: const Duration(seconds: 6));
+  }
 
   @override
   Widget build(BuildContext context) {
