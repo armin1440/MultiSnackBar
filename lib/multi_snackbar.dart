@@ -1,131 +1,102 @@
-///Written by Armin Rezaee on Dec 8, 2021
-
 import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
-///This class holds data of the MultiSnackBar
-///such as :
-/// the list of snackbars
-/// display time
-/// max number of snackbars
-class _MultiSnackBarModel extends ChangeNotifier {
-  _MultiSnackBarModel._();
-
-  static final instance = _MultiSnackBarModel._();
-
-  factory _MultiSnackBarModel() => instance;
-
-  ///The list of snackbars that is going to be displayed
-  List<Widget> _snackBarsList = <Widget>[];
-  ///The max number of snackbars that is allowed to be displayed at the same time
-  int? _maxListLength;
-  ///The time which snackbars will automatically dismiss after
-  Duration _displayTime = const Duration(seconds: 5);
-
-  @override
-  dispose() {}
-
-  // void reset() {
-  //   _snackBarsList = [];
-  //   _maxListLength = null;
-  //   _displayTime = const Duration(seconds: 5);
-  // }
-
-  List<Widget> get snackBarsList => _snackBarsList;
-
-  ///Sets snackbars
-  ///If max list length is not null, then an exception will be thrown if you try to
-  ///display more snackbars using this method
-  void trySetSnackBarsList({required List<Widget> newSnackBarsList}) {
-    if (_maxListLength != null && newSnackBarsList.length > _maxListLength!) {
-      throw Exception(
-          "Snackbars length ( = ${newSnackBarsList.length} ) is larger than max length allowed ( = $_maxListLength ) ");
-    }
-    _snackBarsList = newSnackBarsList.map((e) => e).toList();
-    notifyListeners();
-  }
-
-  ///Adds a list of widgets to the being displayed snackbars
-  void addSnackBars({required List<Widget> toBeAddedSnackBar}) {
-    _snackBarsList.addAll(toBeAddedSnackBar);
-    notifyListeners();
-  }
-
-  ///Empties all snackbars
-  void clearSnackBarList() {
-    _snackBarsList = [];
-    notifyListeners();
-  }
-
-  ///removes a snackbar
-  void _removeSnackBar({required Widget toBeRemovedSnackBar}) {
-    _snackBarsList.remove(toBeRemovedSnackBar);
-    notifyListeners();
-  }
-
-  ///Dismissed a snackbar
-  ///Also if there is not any other snackbars, it removes the whole parent snackbar
-  void dismissSnackBar({required Widget toBeDismissedSnackBar, required BuildContext context}) {
-    _removeSnackBar(toBeRemovedSnackBar: toBeDismissedSnackBar);
-    if (_snackBarsList.isEmpty) {
-      ScaffoldMessenger.of(context).removeCurrentSnackBar();
-    }
-  }
-
-  int? get maxListLength => _maxListLength;
-
-  void setMaxListLength({required int maxLength}) {
-    _maxListLength = maxLength;
-  }
-
-  Duration get displayTime => _displayTime;
-
-  void setDisplayTime({required Duration displayTime}) {
-    _displayTime = displayTime;
-  }
-}
-
-///The interface of this library
-///used to interact with the programmer
+///The interface of this package
 class MultiSnackBarInterface {
-  static final _MultiSnackBarModel _model = _MultiSnackBarModel();
+  ///the list of being displayed snackBars
+  static late ListModel<Widget> _snackBarList;
+
+  ///The key used by the animated list
+  static late GlobalKey<AnimatedListState> _listKey;
+
+  ///Max number of snackbars being displayed at the same time
+  static int _maxListLength = 4;
+
+  ///The length of time which a snackBar is shown for
+  static Duration _displayTime = const Duration(seconds: 4);
 
   ///The list of snackbars' timers
   ///each timer holds the amount of time each snackbar will be dispalyed for
   ///when a timer expires it dismissed the corresponding snackbar
-  static List<Timer> _timersList = <Timer>[];
+  static final List<Timer> _timersList = <Timer>[];
 
   ///A boolean which holds the state of the parent snackbar
   ///false => parent snackbar is not being displayed
   ///true => parent snackbar is being displayed
-  static bool _isShowingSnackbar = false;
+  static bool _isShowingSnackBar = false;
 
-  ///Initializes the snackbars list and the times list
-  static void _init({required List<Widget> snackBars, required BuildContext context}) {
-    _model.trySetSnackBarsList(newSnackBarsList: snackBars);
-    _timersList.forEach((timer) => timer.cancel());
+  ///Initializes the snackbars list and the timers list
+  static void _init({
+    required Widget snackBar,
+    required BuildContext context,
+    bool isCustom = false,
+    EdgeInsets? margin,
+    Clip? clipBehavior,
+    bool? borderOnForeground,
+    bool? semanticContainer,
+    Color? shadowColor,
+    ShapeBorder? shape,
+  }) {
+    _listKey = GlobalKey<AnimatedListState>();
+    _snackBarList = ListModel<Widget>(
+      listKey: _listKey,
+      initialItems: <Widget>[snackBar],
+      removedItemBuilder: (Widget item, BuildContext context, Animation<double> animation) =>
+          SnackBarItem(
+              isCustom: isCustom,
+              animation: animation,
+              child: item,
+              margin: margin,
+              clipBehavior: clipBehavior,
+              borderOnForeground: borderOnForeground,
+              semanticContainer: semanticContainer,
+              shadowColor: shadowColor,
+              shape: shape),
+    );
+
+    for (Timer timer in _timersList) {
+      timer.cancel();
+    }
     _timersList.clear();
-    _model.snackBarsList.forEach((snackBar) {
+    for (int i = 0; i < _snackBarList.length; i++) {
       _timersList.add(
         Timer(
-          _model.displayTime,
+          _displayTime,
           () => _onDismissSnackBar(toBeDismissedSnackBar: snackBar, context: context),
         ),
       );
-    });
+    }
   }
 
   ///Shows a list of widgets as individual snackbars
-  ///Each snackbar is dismissible independently and also it dismisses automatically when its timer expires
-  ///The timer counts to displayTime which you can set it using setDisplayTime. By default it is 5 seconds
-  static void show({required BuildContext context, required List<Widget> snackBars}) {
-    if (_isShowingSnackbar) {
-      _add(context: context, toBeAddedSnackBars: snackBars);
-    }
-    else{
-      _init(snackBars: snackBars, context: context);
+  ///[snackBar] is the widget that is going to be added
+  ///set [isCustom] to true when you do not want to use the default widget (the pink Card)
+  ///if you do not want to use custom widget you can also set the Card's properties
+  static void show({
+    required BuildContext context,
+    required Widget snackBar,
+    bool isCustom = false,
+    EdgeInsets? margin,
+    Clip? clipBehavior,
+    bool? borderOnForeground,
+    bool? semanticContainer,
+    Color? shadowColor,
+    ShapeBorder? shape,
+  }) {
+    if (_isShowingSnackBar) {
+      _add(context: context, toBeAddedSnackBar: snackBar);
+    } else {
+      _init(
+        snackBar: snackBar,
+        context: context,
+        margin: margin,
+        clipBehavior: clipBehavior,
+        borderOnForeground: borderOnForeground,
+        semanticContainer: semanticContainer,
+        shadowColor: shadowColor,
+        shape: shape,
+      );
+      _isShowingSnackBar = true;
       ScaffoldMessenger.of(context).removeCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -134,126 +105,203 @@ class MultiSnackBarInterface {
           dismissDirection: DismissDirection.none,
           backgroundColor: Colors.transparent,
           padding: EdgeInsets.zero,
-          content: _MultiSnackBarWrapper(
-            onDismiss: (snackBar, context) => _onDismissSnackBar(toBeDismissedSnackBar: snackBar, context: context),
+          content: AnimatedSnackBarList(
+            listKey: _listKey,
+            buildItem: (BuildContext context, int index, Animation<double> animation) => SnackBarItem(
+                isCustom: isCustom,
+                animation: animation,
+                child: _snackBarList[index],
+                margin: margin,
+                clipBehavior: clipBehavior,
+                borderOnForeground: borderOnForeground,
+                semanticContainer: semanticContainer,
+                shadowColor: shadowColor,
+                shape: shape),
           ),
         ),
       );
-      _isShowingSnackbar = true;
     }
   }
 
   ///Adds a snackbar to the displaying snackbars if there is enough space
-  ///If there is not enough space, it adds as much snackbars as it is possible until reaching the limit
-  ///You can set the limit using setMaxListLength
-  static _add({required BuildContext context, required List<Widget> toBeAddedSnackBars}) {
-    int listLength = _model.snackBarsList.length;
-    int? freeSpace = _model.maxListLength == null ? null : _model.maxListLength! - listLength;
-    if (freeSpace != null && freeSpace < toBeAddedSnackBars.length) {
-      int neededSpace = toBeAddedSnackBars.length - freeSpace;
-      _model.snackBarsList.removeRange(0, neededSpace);
-      _timersList.getRange(0, neededSpace).forEach((timer) => timer.cancel());
-      _timersList.removeRange(0, neededSpace);
+  ///If there is not enough space, it removes the first snackBar then adds the new one
+  static _add({required BuildContext context, required Widget toBeAddedSnackBar}) {
+    int listLength = _snackBarList.length;
+    int freeSpace = _maxListLength - listLength;
+    if (freeSpace == 0) {
+      _snackBarList.removeAt(0);
+      _timersList.elementAt(0).cancel();
+      _timersList.removeAt(0);
+    } else if (freeSpace < 0) {
+      return;
     }
-    _model.addSnackBars(toBeAddedSnackBar: toBeAddedSnackBars);
-    toBeAddedSnackBars.forEach((toBeAddedSnackBar) {
-      _timersList.add(
-        Timer(
-          _model.displayTime,
-          () => _onDismissSnackBar(toBeDismissedSnackBar: toBeAddedSnackBar, context: context),
-        ),
-      );
-    });
+    _snackBarList.insert(_snackBarList.length, toBeAddedSnackBar);
+
+    _timersList.add(
+      Timer(
+        _displayTime,
+        () => _onDismissSnackBar(toBeDismissedSnackBar: toBeAddedSnackBar, context: context),
+      ),
+    );
   }
 
   ///Dismisses a snackbar and removes its timer
-  ///Finally if there is no being displayed snackbars, it sets isShowingSnackbar to false
+  ///Finally if there is no being displayed snackbars, it sets [_isShowingSnackBar] to false
   static void _onDismissSnackBar({required Widget toBeDismissedSnackBar, required BuildContext context}) {
-    int snackIndex = _model.snackBarsList.indexOf(toBeDismissedSnackBar);
-    _model.dismissSnackBar(toBeDismissedSnackBar: toBeDismissedSnackBar, context: context);
-    _timersList.elementAt(snackIndex).cancel();
-    _timersList.removeAt(snackIndex);
-    if (_model.snackBarsList.isEmpty) {
-      _isShowingSnackbar = false;
+    int snackBarIndex = _snackBarList.indexOf(toBeDismissedSnackBar);
+    _timersList.elementAt(snackBarIndex).cancel();
+    _timersList.removeAt(snackBarIndex);
+    _snackBarList.removeAt(snackBarIndex);
+    if (_snackBarList.length == 0) {
+      _isShowingSnackBar = false;
+      ScaffoldMessenger.of(context).clearSnackBars();
     }
   }
 
   ///Clears all of the being displayed snackbars
   static void clearAll({required BuildContext context}) {
     ScaffoldMessenger.of(context).clearSnackBars();
-    _model.clearSnackBarList();
-    _timersList.forEach((timer) => timer.cancel());
+    for (int i = 0; i < _snackBarList.length; i++) {
+      _snackBarList.removeAt(0);
+    }
+    for (Timer timer in _timersList) {
+      timer.cancel();
+    }
     _timersList.clear();
-    _isShowingSnackbar = false;
+    _isShowingSnackBar = false;
   }
 
-  ///Sets the max number of snackbars which are being displayed at the same time
-  ///If there are some snackbars being displayed at the moment of calling this,
-  ///it will remove all extra top snackbars
+  ///Sets the max number of snackbars
   static void setMaxListLength({required int maxLength}) {
     if (maxLength > 0) {
-      _model.setMaxListLength(maxLength: maxLength);
-      if (_model.maxListLength != null && _model.snackBarsList.length > _model.maxListLength!) {
-        int listLength = _model.snackBarsList.length;
-        _model.trySetSnackBarsList(newSnackBarsList: _model.snackBarsList.sublist(listLength - _model.maxListLength!));
-        _timersList.sublist(0, listLength - _model.maxListLength!).forEach((timer) => timer.cancel());
-        _timersList = _timersList.sublist(listLength - _model.maxListLength!);
-      }
+      _maxListLength = maxLength;
     }
   }
 
-  ///Sets the time which each snackbar is displayed for
-  static void setDisplayTime({required Duration displayTime}){
-    _model.setDisplayTime(displayTime: displayTime);
+  ///Sets the time which each snackBar is displayed for
+  static void setDisplayTime({required Duration displayTime}) {
+    _displayTime = displayTime;
   }
 }
 
-///This class is only used to wrap view in ChangeNotifierProvider
-class _MultiSnackBarWrapper extends StatelessWidget {
-  final Function(Widget, BuildContext) onDismiss;
+class AnimatedSnackBarList extends StatelessWidget {
+  final GlobalKey<AnimatedListState> listKey;
+  final Widget Function(BuildContext, int, Animation<double>) buildItem;
 
-  const _MultiSnackBarWrapper({
-    required this.onDismiss,
+  const AnimatedSnackBarList({
     Key? key,
+    required this.buildItem,
+    required this.listKey,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => _MultiSnackBarModel(),
-      child: _MultiSnackBar(onDismiss: onDismiss),
+    return AnimatedList(
+      key: listKey,
+      initialItemCount: 1,
+      itemBuilder: buildItem,
+      shrinkWrap: true,
     );
   }
 }
 
-///This widget is the view of snackbars
-///There is a single flutter SnackBar that has all other snackbars as its child
-///Each child has infinite width but the height is determined by the child
-class _MultiSnackBar extends StatelessWidget {
-  final Function(Widget, BuildContext) onDismiss;
-
-  const _MultiSnackBar({
-    required this.onDismiss,
+///A wrapper that wraps around the given snackBar widget
+class SnackBarItem extends StatelessWidget {
+  const SnackBarItem({
     Key? key,
+    required this.animation,
+    required this.child,
+    required this.isCustom,
+    this.margin,
+    this.clipBehavior,
+    this.borderOnForeground,
+    this.semanticContainer,
+    this.shadowColor,
+    this.shape,
   }) : super(key: key);
+
+  final Animation<double> animation;
+  final Widget child;
+  final bool isCustom;
+  final EdgeInsets? margin;
+  final Clip? clipBehavior;
+  final bool? borderOnForeground;
+  final bool? semanticContainer;
+  final Color? shadowColor;
+  final ShapeBorder? shape;
 
   @override
   Widget build(BuildContext context) {
-    _MultiSnackBarModel model = context.watch<_MultiSnackBarModel>();
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: model.snackBarsList
-          .map(
-            (snackBar) => Dismissible(
-              key: UniqueKey(),
-              onDismissed: (_) => onDismiss(snackBar, context),
-              child: SizedBox(
+    return Padding(
+      padding: EdgeInsets.zero,
+      child: SizeTransition(
+        sizeFactor: animation,
+        child: isCustom
+            ? child
+            : SizedBox(
                 width: double.infinity,
-                child: snackBar,
+                child: Card(
+                  margin: margin,
+                  clipBehavior: clipBehavior,
+                  borderOnForeground: borderOnForeground ?? true,
+                  semanticContainer: semanticContainer ?? true,
+                  shadowColor: shadowColor,
+                  shape: shape,
+                  elevation: 3,
+                  color: Colors.pink.withOpacity(0.4),
+                  child: child,
+                ),
               ),
-            ),
-          )
-          .toList(),
+      ),
     );
   }
+}
+
+typedef RemovedItemBuilder<T> = Widget Function(T item, BuildContext context, Animation<double> animation);
+
+/// Keeps a Dart [List] in sync with an [AnimatedSnackBarList].
+///
+/// The [insert] and [removeAt] methods apply to both the internal list and
+/// the animated list that belongs to [listKey].
+///
+/// This class only exposes as much of the Dart List API as is needed by the
+/// sample app. More list methods are easily added, however methods that
+/// mutate the list must make the same changes to the animated list in terms
+/// of [AnimatedListState.insertItem] and [AnimatedSnackBarList.removeItem].
+class ListModel<E> {
+  ListModel({
+    required this.listKey,
+    required this.removedItemBuilder,
+    Iterable<E>? initialItems,
+  }) : _items = List<E>.from(initialItems ?? <E>[]);
+
+  final GlobalKey<AnimatedListState> listKey;
+  final RemovedItemBuilder<E> removedItemBuilder;
+  final List<E> _items;
+
+  AnimatedListState? get _animatedList => listKey.currentState;
+
+  void insert(int index, E item) {
+    _items.insert(index, item);
+    _animatedList!.insertItem(index);
+  }
+
+  E removeAt(int index) {
+    final E removedItem = _items.removeAt(index);
+    if (removedItem != null) {
+      _animatedList!.removeItem(
+        index,
+        (BuildContext context, Animation<double> animation) {
+          return removedItemBuilder(removedItem, context, animation);
+        },
+      );
+    }
+    return removedItem;
+  }
+
+  int get length => _items.length;
+
+  E operator [](int index) => _items[index];
+
+  int indexOf(E item) => _items.indexOf(item);
 }

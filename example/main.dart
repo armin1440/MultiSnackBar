@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:multi_snackbar/multi_snackbar.dart';
 
@@ -27,20 +25,17 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
   @override
   void initState() {
     super.initState();
-    //This is optional. By default there is no limit.
-    MultiSnackBarInterface.setMaxListLength(maxLength: 4);
-    //This is optional. By default it is 5 seconds.
-    MultiSnackBarInterface.setDisplayTime(displayTime: const Duration(seconds: 6));
+    //This is optional. By default it is 4.
+    MultiSnackBarInterface.setMaxListLength(maxLength: 3);
+    //This is optional. By default it is 4 seconds.
+    MultiSnackBarInterface.setDisplayTime(displayTime: const Duration(seconds: 5));
   }
 
   @override
   Widget build(BuildContext context) {
-    var random = Random.secure();
-
     return Scaffold(
       body: SafeArea(
         child: Align(
@@ -49,43 +44,19 @@ class _MyHomePageState extends State<MyHomePage> {
             children: [
               TextButton(
                 onPressed: () {
-                  //You should wrap show method in try-catch block when there is a max number of snackbars limit
-                  //because you might get an exception when you want to show more snackbars than the limit
-
-                  try{
                   MultiSnackBarInterface.show(
+                    // isCustom: true,
+                    // margin: const EdgeInsets.all(12),
+                    // shadowColor: Colors.yellow,
                     context: context,
-                    snackBars: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        color: Color.fromRGBO(random.nextInt(255), random.nextInt(255), random.nextInt(255), 1),
-                        child: const Text(
-                          'Added',
-                          style: TextStyle(color: Colors.black),
-                        ),
+                    snackBar: Container(
+                      padding: const EdgeInsets.all(8),
+                      child: const Text(
+                        'Added',
+                        style: TextStyle(color: Colors.black),
                       ),
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        color: Color.fromRGBO(random.nextInt(255), random.nextInt(255), random.nextInt(255), 1),
-                        child: const Text(
-                          'Added',
-                          style: TextStyle(color: Colors.black),
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        color: Color.fromRGBO(random.nextInt(255), random.nextInt(255), random.nextInt(255), 1),
-                        child: const Text(
-                          'Added',
-                          style: TextStyle(color: Colors.black),
-                        ),
-                      )
-                    ],
+                    ),
                   );
-                  }
-                  catch(e){
-                    // print(e.toString());
-                  }
                 },
                 child: const Text("Add a snackbar"),
               ),
@@ -108,7 +79,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     )
                   ],
                 ),
-              )
+              ),
             ],
           ),
         ),
