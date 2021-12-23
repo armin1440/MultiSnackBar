@@ -6,7 +6,7 @@ A set of commands that helps you display more than one snackbar at the same time
 
 ### Make a widget:
 ~~~
-var widget = Text('I am $index');
+var widget = Text('I am a widget');
 ~~~
 
 ### Show them as individual snackbars:
