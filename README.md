@@ -4,14 +4,14 @@ A set of commands that helps you display more than one snackbar at the same time
 
 ## Getting Started
 
-### Make a list of widgets:
+### Make a widget:
 ~~~
-var widgets = List.generate(3, (index) => Text('I am $index'));
+var widget = Text('I am $index');
 ~~~
 
 ### Show them as individual snackbars:
 ~~~
-MultiSnackBarInterface.show(context: context, snackBars: widgets);
+MultiSnackBarInterface.show(context: context, snackBar: widget);
 ~~~
 
 Just like that!
@@ -33,6 +33,3 @@ MultiSnackBarInterface.setDisplayTime(displayTime: const Duration(seconds: 6));
 MultiSnackBarInterface.clearAll(context: context);
 ~~~
 
-
-
-#### Please give this package a star and follow me on github: https://github.com/armin1440 ;)
